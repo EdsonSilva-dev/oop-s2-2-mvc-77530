@@ -1,0 +1,171 @@
+﻿@model FoodSafety.MVC.ViewModels.DashboardViewModel
+@using FoodSafety.Domain.Enums
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1 class="mb-4">Food Safety Dashboard</h1>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Town</label>
+        <select name="town" class="form-select">
+            <option value="">All Towns</option>
+            @foreach (var town in Model.AvailableTowns)
+            {
+                if (Model.SelectedTown == town)
+                {
+                    <option value="@town" selected>@town</option>
+                }
+                else
+                {
+                    <option value="@town">@town</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Risk Rating</label>
+        <select name="riskRating" class="form-select">
+            <option value="">All Risk Ratings</option>
+            @foreach (var rating in Model.AvailableRiskRatings)
+            {
+                if (Model.SelectedRiskRating == rating)
+                {
+                    <option value="@rating" selected>@rating</option>
+                }
+                else
+                {
+                    <option value="@rating">@rating</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Inspections This Month</h5>
+                <p class="display-6">@Model.InspectionsThisMonth</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Failed Inspections This Month</h5>
+                <p class="display-6 text-danger">@Model.FailedInspectionsThisMonth</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Overdue Open Follow-Ups</h5>
+                <p class="display-6 text-warning">@Model.OverdueOpenFollowUps</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                Recent Inspections
+            </div>
+            <div class="card-body">
+                @if (Model.RecentInspections.Any())
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Premises</th>
+                                <th>Town</th>
+                                <th>Date</th>
+                                <th>Score</th>
+                                <th>Outcome</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.RecentInspections)
+                            {
+                                <tr>
+                                    <td>@item.PremisesName</td>
+                                    <td>@item.Town</td>
+                                    <td>@item.InspectionDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.Score</td>
+                                    <td>
+                                        @if (item.Outcome == InspectionOutcome.Fail)
+                                        {
+                                            <span class="badge bg-danger">Fail</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Pass</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No inspections found for the selected filters.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                Overdue Follow-Ups
+            </div>
+            <div class="card-body">
+                @if (Model.OverdueFollowUps.Any())
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Premises</th>
+                                <th>Town</th>
+                                <th>Due Date</th>
+                                <th>Days Overdue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OverdueFollowUps)
+                            {
+                                <tr>
+                                    <td>@item.PremisesName</td>
+                                    <td>@item.Town</td>
+                                    <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">@item.DaysOverdue</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No overdue follow-ups found for the selected filters.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

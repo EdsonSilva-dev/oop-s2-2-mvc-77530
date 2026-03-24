@@ -1,0 +1,38 @@
+﻿@model FoodSafety.MVC.ViewModels.InspectionCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Inspection";
+}
+
+<h1 class="mb-4">Create Inspection</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <input asp-for="PremisesId" type="hidden" />
+
+    <div class="mb-3">
+        <label asp-for="InspectionDate" class="form-label"></label>
+        <input asp-for="InspectionDate" class="form-control" />
+        <span asp-validation-for="InspectionDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Score" class="form-label"></label>
+        <input asp-for="Score" class="form-control" />
+        <span asp-validation-for="Score" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Inspection</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
