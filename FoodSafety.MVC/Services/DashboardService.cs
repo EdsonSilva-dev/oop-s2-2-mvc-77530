@@ -71,24 +71,27 @@ public class DashboardService : IDashboardService
             })
             .ToListAsync();
 
-        var overdueFollowUps = await _context.FollowUps
-            .Include(f => f.Inspection)
-                .ThenInclude(i => i!.Premises)
-            .Where(f => f.Status == FollowUpStatus.Open)
-            .Where(f => f.DueDate < now)
-            .Where(f => f.Inspection != null && filteredPremisesIds.Contains(f.Inspection.PremisesId))
-            .OrderBy(f => f.DueDate)
-            .Take(5)
+              var overdueFollowUpsData = await _context.FollowUps
+     .Include(f => f.Inspection)
+         .ThenInclude(i => i!.Premises)
+     .Where(f => f.Status == FollowUpStatus.Open)
+     .Where(f => f.DueDate < now)
+     .Where(f => f.Inspection != null && filteredPremisesIds.Contains(f.Inspection.PremisesId))
+     .OrderBy(f => f.DueDate)
+     .Take(5)
+     .ToListAsync();
+
+        var overdueFollowUps = overdueFollowUpsData
             .Select(f => new OverdueFollowUpItemViewModel
             {
                 FollowUpId = f.Id,
                 InspectionId = f.InspectionId,
-                PremisesName = f.Inspection != null && f.Inspection.Premises != null ? f.Inspection.Premises.Name : string.Empty,
-                Town = f.Inspection != null && f.Inspection.Premises != null ? f.Inspection.Premises.Town : string.Empty,
+                PremisesName = f.Inspection?.Premises?.Name ?? string.Empty,
+                Town = f.Inspection?.Premises?.Town ?? string.Empty,
                 DueDate = f.DueDate,
-                DaysOverdue = EF.Functions.DateDiffDay(f.DueDate, now)
+                DaysOverdue = (now.Date - f.DueDate.Date).Days
             })
-            .ToListAsync();
+            .ToList();
 
         var availableTowns = await _context.Premises
             .Select(p => p.Town)
