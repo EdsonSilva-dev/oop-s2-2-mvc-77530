@@ -87,6 +87,25 @@ public class PremisesController : Controller
         return View(model);
     }
 
+    [Authorize(Roles = "Admin,Inspector,Viewer")]
+    public async Task<IActionResult> History(int id, int monthsBack = 1)
+    {
+        var model = await _premisesService.GetHistoryAsync(id, monthsBack);
+
+        if (model == null)
+        {
+            _logger.LogWarning("Premises not found for History. Id={PremisesId}", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation(
+            "Premises history viewed. Id={PremisesId}, MonthsBack={MonthsBack}",
+            id,
+            monthsBack);
+
+        return View(model);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]

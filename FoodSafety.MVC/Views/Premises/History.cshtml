@@ -1,13 +1,15 @@
-﻿@model FoodSafety.MVC.ViewModels.PremisesDetailsViewModel
+﻿@model FoodSafety.MVC.ViewModels.PremisesHistoryViewModel
 @using FoodSafety.Domain.Enums
 
 @{
-    ViewData["Title"] = "Premises Details";
+    ViewData["Title"] = "Premises History";
 }
+
+<h1 class="mb-3">Historical Records - @Model.Name</h1>
+
 <p class="text-muted mb-4">
-    Review the premises profile, inspection performance, and follow-up history in one place.
+    Showing inspections and follow-ups older than @Model.MonthsBack month(s), before @Model.CutoffDate.ToString("dd/MM/yyyy").
 </p>
-<h1 class="mb-4">@Model.Name</h1>
 
 <div class="mb-4">
     <p><strong>Address:</strong> @Model.Address</p>
@@ -29,82 +31,97 @@
     </p>
 </div>
 
+<form method="get" asp-action="History" class="row g-3 mb-4">
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <div class="col-md-4">
+        <label class="form-label">Show records older than</label>
+        <select name="monthsBack" class="form-select">
+            @if (Model.MonthsBack == 1)
+            {
+                <option value="1" selected>1 month</option>
+            }
+            else
+            {
+                <option value="1">1 month</option>
+            }
+
+            @if (Model.MonthsBack == 3)
+            {
+                <option value="3" selected>3 months</option>
+            }
+            else
+            {
+                <option value="3">3 months</option>
+            }
+
+            @if (Model.MonthsBack == 6)
+            {
+                <option value="6" selected>6 months</option>
+            }
+            else
+            {
+                <option value="6">6 months</option>
+            }
+
+            @if (Model.MonthsBack == 12)
+            {
+                <option value="12" selected>12 months</option>
+            }
+            else
+            {
+                <option value="12">12 months</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">Apply</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back to Details</a>
+    </div>
+</form>
+
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h6>Total Inspections</h6>
-                <p class="display-6">@Model.TotalInspections</p>
+                <h6>Historical Inspections</h6>
+                <p class="display-6">@Model.TotalHistoricalInspections</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h6>Failed Inspections</h6>
-                <p class="display-6 text-danger">@Model.FailedInspections</p>
+                <h6>Historical Fails</h6>
+                <p class="display-6 text-danger">@Model.TotalHistoricalFails</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h6>Open Follow-Ups</h6>
-                <p class="display-6 text-primary">@Model.OpenFollowUps</p>
+                <h6>Historical Follow-Ups</h6>
+                <p class="display-6 text-primary">@Model.TotalHistoricalFollowUps</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h6>Overdue Follow-Ups</h6>
-                <p class="display-6 text-warning">@Model.OverdueFollowUps</p>
+                <h6>Closed Follow-Ups</h6>
+                <p class="display-6 text-success">@Model.TotalHistoricalClosedFollowUps</p>
             </div>
         </div>
     </div>
 </div>
-
-<div class="mb-4">
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to Premises</a>
-    <a asp-action="History" asp-route-id="@Model.Id" class="btn btn-outline-primary">View Historical Records</a>
-
-    @if (User.IsInRole("Admin") || User.IsInRole("Inspector"))
-    {
-        <a asp-controller="Inspections" asp-action="Create" asp-route-premisesId="@Model.Id" class="btn btn-success">
-            Add Inspection
-        </a>
-    }
-</div>
-
-<div class="mb-4">
-    <h4>Latest Inspection Summary</h4>
-    @if (Model.LatestInspectionDate.HasValue)
-    {
-        <p><strong>Date:</strong> @Model.LatestInspectionDate.Value.ToString("dd/MM/yyyy")</p>
-        <p><strong>Score:</strong> @Model.LatestInspectionScore</p>
-        <p><strong>Outcome:</strong> @Model.LatestInspectionOutcome</p>
-    }
-    else
-    {
-        <p>No inspections recorded yet.</p>
-    }
-</div>
-
-@if (User.IsInRole("Admin") || User.IsInRole("Inspector"))
-{
-    <div class="mb-4">
-        <a asp-controller="Inspections" asp-action="Create" asp-route-premisesId="@Model.Id" class="btn btn-success">
-            Add Inspection
-        </a>
-    </div>
-}
 
 <div class="row">
     <div class="col-md-6">
         <div class="card shadow-sm mb-4">
-            <div class="card-header">Inspection History</div>
+            <div class="card-header">Historical Inspection History</div>
             <div class="card-body">
-                @if (Model.InspectionHistory.Any())
+                @if (Model.HistoricalInspections.Any())
                 {
                     <table class="table table-striped">
                         <thead>
@@ -113,11 +130,10 @@
                                 <th>Score</th>
                                 <th>Outcome</th>
                                 <th>Notes</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model.InspectionHistory)
+                            @foreach (var item in Model.HistoricalInspections)
                             {
                                 <tr>
                                     <td>@item.InspectionDate.ToString("dd/MM/yyyy")</td>
@@ -133,14 +149,6 @@
                                         }
                                     </td>
                                     <td>@item.Notes</td>
-                                    <td>
-                                        @if ((User.IsInRole("Admin") || User.IsInRole("Inspector")) && item.Outcome == InspectionOutcome.Fail)
-                                        {
-                                            <a asp-controller="FollowUps" asp-action="Create" asp-route-inspectionId="@item.InspectionId" class="btn btn-sm btn-warning">
-                                                Add Follow-Up
-                                            </a>
-                                        }
-                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -148,7 +156,7 @@
                 }
                 else
                 {
-                    <p>No inspections found.</p>
+                    <p>No historical inspections found for this period.</p>
                 }
             </div>
         </div>
@@ -156,9 +164,9 @@
 
     <div class="col-md-6">
         <div class="card shadow-sm mb-4">
-            <div class="card-header">Follow-Up History</div>
+            <div class="card-header">Historical Follow-Up History</div>
             <div class="card-body">
-                @if (Model.FollowUpHistory.Any())
+                @if (Model.HistoricalFollowUps.Any())
                 {
                     <table class="table table-striped">
                         <thead>
@@ -170,7 +178,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model.FollowUpHistory)
+                            @foreach (var item in Model.HistoricalFollowUps)
                             {
                                 <tr class="@(item.IsOverdue ? "table-warning" : "")">
                                     <td>@item.InspectionDate.ToString("dd/MM/yyyy")</td>
@@ -200,16 +208,9 @@
                 }
                 else
                 {
-                    <p>No follow-ups found.</p>
+                    <p>No historical follow-ups found for this period.</p>
                 }
-                
             </div>
-            <div>
-            <a asp-action="Index" class="btn btn-outline-secondary mb-3">Back to Premises</a>
-            </div>
-        
-
-
         </div>
     </div>
 </div>

@@ -174,4 +174,74 @@ public class PremisesService : IPremisesService
 
         return true;
     }
+    public async Task<PremisesHistoryViewModel?> GetHistoryAsync(int id, int monthsBack = 1)
+    {
+        if (monthsBack < 1)
+        {
+            monthsBack = 1;
+        }
+
+        var cutoffDate = DateTime.Today.AddMonths(-monthsBack);
+
+        var premises = await _context.Premises
+            .Include(p => p.Inspections)
+                .ThenInclude(i => i.FollowUps)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (premises == null)
+        {
+            return null;
+        }
+
+        var historicalInspections = premises.Inspections
+            .Where(i => i.InspectionDate.Date < cutoffDate.Date)
+            .OrderByDescending(i => i.InspectionDate)
+            .ToList();
+
+        var historicalFollowUps = historicalInspections
+            .SelectMany(i => i.FollowUps.Select(f => new { Inspection = i, FollowUp = f }))
+            .OrderByDescending(x => x.FollowUp.DueDate)
+            .ToList();
+
+        return new PremisesHistoryViewModel
+        {
+            Id = premises.Id,
+            Name = premises.Name,
+            Address = premises.Address,
+            Town = premises.Town,
+            RiskRating = premises.RiskRating,
+            MonthsBack = monthsBack,
+            CutoffDate = cutoffDate,
+
+            TotalHistoricalInspections = historicalInspections.Count,
+            TotalHistoricalFails = historicalInspections.Count(i => i.Outcome == InspectionOutcome.Fail),
+            TotalHistoricalFollowUps = historicalFollowUps.Count,
+            TotalHistoricalClosedFollowUps = historicalFollowUps.Count(x => x.FollowUp.Status == FollowUpStatus.Closed),
+            TotalHistoricalOpenFollowUps = historicalFollowUps.Count(x => x.FollowUp.Status == FollowUpStatus.Open),
+
+            HistoricalInspections = historicalInspections
+                .Select(i => new PremisesInspectionHistoryItemViewModel
+                {
+                    InspectionId = i.Id,
+                    InspectionDate = i.InspectionDate,
+                    Score = i.Score,
+                    Outcome = i.Outcome,
+                    Notes = i.Notes
+                })
+                .ToList(),
+
+            HistoricalFollowUps = historicalFollowUps
+                .Select(x => new PremisesFollowUpHistoryItemViewModel
+                {
+                    FollowUpId = x.FollowUp.Id,
+                    InspectionId = x.Inspection.Id,
+                    InspectionDate = x.Inspection.InspectionDate,
+                    DueDate = x.FollowUp.DueDate,
+                    Status = x.FollowUp.Status,
+                    ClosedDate = x.FollowUp.ClosedDate,
+                    IsOverdue = x.FollowUp.Status == FollowUpStatus.Open && x.FollowUp.DueDate.Date < DateTime.Today
+                })
+                .ToList()
+        };
+    }
 }
