@@ -5,6 +5,7 @@ using FoodSafety.MVC.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using FoodSafety.MVC.Extensions;
 using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -70,14 +71,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.UseGlobalExceptionMiddleware();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
 }
 
 app.UseSerilogRequestLogging();

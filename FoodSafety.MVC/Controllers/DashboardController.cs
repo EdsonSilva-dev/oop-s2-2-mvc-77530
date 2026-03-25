@@ -29,4 +29,6 @@ public class DashboardController : Controller
         var model = await _dashboardService.GetDashboardAsync(town, riskRating);
         return View(model);
     }
+
+    
 }
