@@ -9,10 +9,14 @@ namespace FoodSafety.MVC.Controllers;
 public class FollowUpsController : Controller
 {
     private readonly IFollowUpService _followUpService;
+    private readonly ILogger<FollowUpsController> _logger;
 
-    public FollowUpsController(IFollowUpService followUpService)
+    public FollowUpsController(
+        IFollowUpService followUpService,
+        ILogger<FollowUpsController> logger)
     {
         _followUpService = followUpService;
+        _logger = logger;
     }
 
     [Authorize(Roles = "Admin,Inspector,Viewer")]
@@ -29,6 +33,7 @@ public class FollowUpsController : Controller
 
         if (model == null)
         {
+            _logger.LogWarning("Inspection not found for follow-up creation. InspectionId={InspectionId}", inspectionId);
             return NotFound();
         }
 
@@ -42,6 +47,7 @@ public class FollowUpsController : Controller
     {
         if (!ModelState.IsValid)
         {
+            _logger.LogWarning("Invalid follow-up model. InspectionId={InspectionId}", model.InspectionId);
             return View(model);
         }
 
@@ -49,10 +55,21 @@ public class FollowUpsController : Controller
 
         if (!result.Success)
         {
+            _logger.LogWarning(
+                "Follow-up creation failed. InspectionId={InspectionId}, Reason={Reason}",
+                model.InspectionId,
+                result.ErrorMessage);
+
             ModelState.AddModelError(string.Empty, result.ErrorMessage);
             return View(model);
         }
 
+        _logger.LogInformation(
+            "Follow-up created: InspectionId={InspectionId}, DueDate={DueDate}",
+            model.InspectionId,
+            model.DueDate);
+
+        TempData["SuccessMessage"] = "Follow-up created successfully.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -63,6 +80,7 @@ public class FollowUpsController : Controller
 
         if (model == null)
         {
+            _logger.LogWarning("Follow-up not found for closing. Id={FollowUpId}", id);
             return NotFound();
         }
 
@@ -76,6 +94,7 @@ public class FollowUpsController : Controller
     {
         if (!ModelState.IsValid)
         {
+            _logger.LogWarning("Invalid close follow-up model. Id={FollowUpId}", model.FollowUpId);
             return View(model);
         }
 
@@ -83,10 +102,21 @@ public class FollowUpsController : Controller
 
         if (!result.Success)
         {
+            _logger.LogWarning(
+                "Follow-up close failed. Id={FollowUpId}, Reason={Reason}",
+                model.FollowUpId,
+                result.ErrorMessage);
+
             ModelState.AddModelError(string.Empty, result.ErrorMessage);
             return View(model);
         }
 
+        _logger.LogInformation(
+            "Follow-up closed: Id={FollowUpId}, ClosedDate={ClosedDate}",
+            model.FollowUpId,
+            model.ClosedDate);
+
+        TempData["SuccessMessage"] = "Follow-up closed successfully.";
         return RedirectToAction(nameof(Index));
     }
 }

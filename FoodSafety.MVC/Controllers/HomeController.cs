@@ -1,25 +1,22 @@
+using System.Diagnostics;
 using FoodSafety.MVC.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
-namespace FoodSafety.MVC.Controllers
+namespace FoodSafety.MVC.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    public IActionResult Index()
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return RedirectToAction("Index", "Dashboard");
+    }
 
-        public IActionResult Privacy()
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel
         {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+        });
     }
 }
